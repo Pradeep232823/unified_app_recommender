@@ -19,14 +19,4 @@
     {% endfor %}
 </div>
 
-<div class="review-section">
-    <h2>Submit a Review</h2>
-    <form action="{{ url_for('submit_review') }}" method="POST" class="review-form">
-        <input type="number" name="user_id" placeholder="User ID (1-500)" required>
-        <input type="number" name="app_id" placeholder="App ID (1-100)" required>
-        <input type="number" name="rating" placeholder="Rating (1-5)" required>
-        <textarea name="review" placeholder="Write your review..." required></textarea>
-        <button type="submit" class="btn btn-secondary">Submit Review</button>
-    </form>
-</div>
 {% endblock %}

@@ -34,7 +34,6 @@ except FileNotFoundError:
 
 @app.route('/')
 def index():
-    # Show random apps or top rated
     top_apps = df_apps.sort_values('avg_rating', ascending=False).head(12)
     return render_template('index.html', apps=top_apps.to_dict(orient='records'))
 
@@ -42,8 +41,6 @@ def index():
 def recommend():
     recommendations = []
     selected_category = None
-
-    # Get unique categories from dataset
     categories = sorted(df_apps['category'].unique().tolist())
 
     if request.method == 'POST':
@@ -68,29 +65,18 @@ def recommend():
 
 @app.route('/dashboard')
 def dashboard():
-    # Simple stats
     num_users = df_ratings['user_id'].nunique()
     num_apps = df_apps.shape[0]
     avg_rating = df_ratings['rating'].mean()
     category_counts = df_apps['category'].value_counts().to_dict()
     
-    return render_template('dashboard.html', num_users=num_users, num_apps=num_apps, avg_rating=round(avg_rating, 2), category_counts=category_counts)
-
-@app.route('/submit_review', methods=['POST'])
-def submit_review():
-    user_id = request.form.get('user_id')
-    app_id = request.form.get('app_id')
-    rating = request.form.get('rating')
-    review = request.form.get('review')
-    
-    # In a real app, save to DB. Here we just append to CSV and reload (simplified)
-    new_row = {'user_id': int(user_id), 'app_id': int(app_id), 'rating': int(rating), 'review': review}
-    global df_ratings
-    df_ratings = pd.concat([df_ratings, pd.DataFrame([new_row])], ignore_index=True)
-    df_ratings.to_csv('ratings.csv', index=False)
-    
-    flash('Review submitted successfully!', 'success')
-    return redirect(url_for('index'))
+    return render_template(
+        'dashboard.html',
+        num_users=num_users,
+        num_apps=num_apps,
+        avg_rating=round(avg_rating, 2),
+        category_counts=category_counts
+    )
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

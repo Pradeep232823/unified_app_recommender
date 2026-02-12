@@ -273,19 +273,7 @@ h3 {
 /* =========================
    REVIEW / FORMS
    ========================= */
-.review-section {
-    background: var(--white);
-    padding: 30px;
-    border-radius: 8px;
-    margin-top: 50px;
-}
 
-.review-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    max-width: 600px;
-}
 
 input, textarea, select {
     padding: 10px;
