@@ -1,1 +1,1 @@
-# eduapp-recommende
+# Unified Applications Recommendation System Using ML & DL
