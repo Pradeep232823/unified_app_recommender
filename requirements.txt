@@ -6,3 +6,4 @@ flask
 google-play-scraper
 scipy
 gunicorn
+mysql-connector-python
