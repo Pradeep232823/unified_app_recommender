@@ -1,33 +1,108 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block content %}
-<h1>System Dashboard</h1>
 
-<div class="stats-grid">
-    <div class="stat-card">
-        <h3>Total Users</h3>
-        <p class="stat-value">{{ num_users }}</p>
-    </div>
-    <div class="stat-card">
-        <h3>Total Apps</h3>
-        <p class="stat-value">{{ num_apps }}</p>
-    </div>
-    <div class="stat-card">
-        <h3>Average Rating</h3>
-        <p class="stat-value">{{ avg_rating }}</p>
-    </div>
-</div>
+<div class="dashboard-container">
 
-<h2>Apps by Category</h2>
-<div class="category-list">
-    {% for category, count in category_counts.items() %}
-    <div class="category-item">
-        <span class="cat-name">{{ category }}</span>
-        <span class="cat-count">{{ count }}</span>
-        <div class="progress-bar">
-            <div class="progress" style="width: {{ (count / num_apps) * 100 }}%"></div>
+    {% if role == "admin" %}
+        <h1>Admin Control Panel</h1>
+    {% else %}
+        <h1>User Dashboard</h1>
+    {% endif %}
+
+    <!-- ================= STATISTICS ================= -->
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <h3>Total Apps</h3>
+            <p class="stat-number">{{ num_apps }}</p>
         </div>
+
+        <div class="stat-card">
+            <h3>Average Rating</h3>
+            <p class="stat-number">{{ avg_rating }}</p>
+        </div>
+
+        {% if role == "admin" %}
+        <div class="stat-card">
+            <h3>Total Users</h3>
+            <p class="stat-number">{{ num_users }}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Model RMSE</h3>
+            <p class="stat-number">{{ rmse }}</p>
+            <p style="font-size:13px;color:#64748b;margin-top:5px;">
+                Lower RMSE indicates better prediction accuracy
+            </p>
+        </div>
+        {% endif %}
+
     </div>
-    {% endfor %}
+
+    <!-- ================= CATEGORY DISTRIBUTION ================= -->
+    <section class="category-section">
+        <h2>Apps Distribution by Category</h2>
+
+        <div class="category-table-wrapper">
+            <table class="category-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>App Count</th>
+                        <th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat, count in category_counts.items() %}
+                    <tr>
+                        <td>{{ cat }}</td>
+                        <td>{{ count }}</td>
+                        <td>{{ "%.1f"|format((count / num_apps * 100)) }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {% if role == "admin" %}
+    <!-- ================= USER MANAGEMENT ================= -->
+    <section class="category-section">
+        <h2>User Activity & Performance</h2>
+
+        <div class="category-table-wrapper">
+            <table class="category-table">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Username</th>
+                        <th>Wishlist Count</th>
+                        <th>Review Count</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in user_activity %}
+                    <tr>
+                        <td>{{ user[0] }}</td>
+                        <td>{{ user[1] }}</td>
+                        <td>{{ user[2] }}</td>
+                        <td>{{ user[3] }}</td>
+                        <td>
+                            <a href="{{ url_for('remove_user', user_id=user[0]) }}"
+                               class="btn btn-danger"
+                               onclick="return confirm('Are you sure you want to remove this user?');">
+                               Remove
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
 </div>
+
 {% endblock %}

@@ -1,33 +1,16 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% block content %}
 
-<h1 class="page-title">Explore Apps by Category</h1>
+<h1>Your Wishlist</h1>
 
-<form method="POST" class="search-form">
-    <select name="category" required>
-        <option value="">-- Select Category --</option>
-        {% for cat in categories %}
-        <option value="{{ cat }}"
-            {% if cat == selected_category %}selected{% endif %}>
-            {{ cat }}
-        </option>
-        {% endfor %}
-    </select>
-
-    <button type="submit" class="btn btn-primary">
-        Show Apps
-    </button>
-</form>
-
-{% if selected_category %}
-
-<h2>Top Apps in "{{ selected_category }}"</h2>
+{% if apps %}
 
 <div class="app-grid">
-    {% for app in recommendations %}
+    {% for app in apps %}
     <div class="app-card">
         <h3>{{ app.app_name }}</h3>
         <span class="badge">{{ app.category }}</span>
+
         <div class="rating">⭐ {{ app.avg_rating }}</div>
         <div class="meta">📥 {{ app.installs }} installs</div>
         <div class="meta">🗳 {{ app.ratings_count }} ratings</div>
@@ -40,9 +23,8 @@
     {% endfor %}
 </div>
 
-
 <!-- MODALS -->
-{% for app in recommendations %}
+{% for app in apps %}
 <div id="modal-{{ app.app_id }}" class="modal">
     <div class="modal-content">
 
@@ -51,6 +33,7 @@
             &times;
         </span>
 
+        <!-- HEADER -->
         <div class="modal-header">
             <h2>{{ app.app_name }}</h2>
 
@@ -62,6 +45,7 @@
             </div>
         </div>
 
+        <!-- DESCRIPTION -->
         <section class="section-block">
             <h3>Description</h3>
             <div class="desc-box">
@@ -71,6 +55,7 @@
             </div>
         </section>
 
+        <!-- ACTION BUTTONS -->
         <section class="section-block action-buttons">
             <a href="{{ app.app_link }}"
                target="_blank"
@@ -78,22 +63,22 @@
                 Download App
             </a>
 
-            {% if role == "user" %}
             <form method="POST"
-                  action="{{ url_for('add_to_wishlist') }}">
+                  action="{{ url_for('remove_from_wishlist') }}">
                 <input type="hidden"
                        name="app_name"
                        value="{{ app.app_name }}">
                 <button type="submit"
-                        class="btn btn-secondary">
-                    Add to Wishlist
+                        class="btn btn-danger">
+                    Remove from Wishlist
                 </button>
             </form>
-            {% endif %}
         </section>
 
+        <!-- PLAYSTORE REVIEWS -->
         <section class="section-block">
             <h3>PlayStore Reviews</h3>
+
             <div class="review-section">
                 <div class="positive-box">
                     <h4>Positive</h4>
@@ -115,47 +100,30 @@
             </div>
         </section>
 
-        {% if role == "user" %}
-        <section class="section-block review-form-box">
-            <h3>Give Your Review</h3>
+        <!-- WEB USER REVIEWS -->
+        <section class="section-block">
+            <h3>Webpage User Reviews</h3>
 
-            <form method="POST"
-                  action="{{ url_for('add_review') }}">
-
-                <input type="hidden"
-                       name="app_name"
-                       value="{{ app.app_name }}">
-
-                <div class="form-group">
-                    <label>Rating</label>
-                    <select name="rating" required>
-                        <option value="">Select</option>
-                        <option value="5">5 ⭐</option>
-                        <option value="4">4 ⭐</option>
-                        <option value="3">3 ⭐</option>
-                        <option value="2">2 ⭐</option>
-                        <option value="1">1 ⭐</option>
-                    </select>
+            {% if app.web_reviews %}
+            <div class="web-review-list">
+                {% for r in app.web_reviews %}
+                <div class="web-review-card">
+                    <div class="web-rating">⭐ {{ r[0] }}</div>
+                    <div class="web-text">{{ r[1] }}</div>
                 </div>
-
-                <div class="form-group">
-                    <textarea name="review"
-                              placeholder="Write your review..."
-                              required></textarea>
-                </div>
-
-                <button type="submit"
-                        class="btn btn-secondary">
-                    Submit Review
-                </button>
-            </form>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>No user reviews yet.</p>
+            {% endif %}
         </section>
-        {% endif %}
 
     </div>
 </div>
 {% endfor %}
 
+{% else %}
+<p style="text-align:center;">No apps added to wishlist yet.</p>
 {% endif %}
 
 {% endblock %}

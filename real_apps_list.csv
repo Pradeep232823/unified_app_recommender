@@ -1,4 +1,4 @@
-Category,App_name,App_Link
+category,app_name,app_link
 Art & Design,Adobe Express: AI Photo & Video,https://play.google.com/store/apps/details?id=com.adobe.spark.post
 Art & Design,Sketchbook,https://play.google.com/store/apps/details?id=com.adsk.sketchbook
 Art & Design,Canva,https://play.google.com/store/apps/details?id=com.canva.editor
@@ -31,7 +31,6 @@ Finance,Groww Stocks & Mutual Fund,https://play.google.com/store/apps/details?id
 Finance,Binance: Buy Bitcoin & Crypto,https://play.google.com/store/apps/details?id=com.binance.dev
 Finance,Upstox - Stocks & Demat Account,https://play.google.com/store/apps/details?id=in.upstox.app
 Finance,Navi: UPI | Insurance & Loans,https://play.google.com/store/apps/details?id=com.naviapp
-Finance,MetaTrader 5 - Forex & Stocks,https://play.google.com/store/apps/details?id=net.metaquotes.metatrader5
 Business & Job Search,LinkedIn: Jobs & Business News,https://play.google.com/store/apps/details?id=com.linkedin.android
 Business & Job Search,Indeed Job Search,https://play.google.com/store/apps/details?id=com.indeed.android.jobsearch
 Business & Job Search,WorkIndia Job Search App,https://play.google.com/store/apps/details?id=in.workindia.nileshdungarwal.workindiaandroid
