@@ -118,6 +118,42 @@
             {% endif %}
         </section>
 
+        {% if role == "user" %}
+        <section class="section-block review-form-box">
+            <h3>Give Your Review</h3>
+
+            <form method="POST"
+                  action="{{ url_for('add_review') }}">
+
+                <input type="hidden"
+                       name="app_name"
+                       value="{{ app.app_name }}">
+
+                <div class="form-group">
+                    <label>Rating</label>
+                    <select name="rating" required>
+                        <option value="">Select</option>
+                        <option value="5">5 ⭐</option>
+                        <option value="4">4 ⭐</option>
+                        <option value="3">3 ⭐</option>
+                        <option value="2">2 ⭐</option>
+                        <option value="1">1 ⭐</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <textarea name="review"
+                              placeholder="Write your review..."
+                              required></textarea>
+                </div>
+
+                <button type="submit"
+                        class="btn btn-secondary">
+                    Submit Review
+                </button>
+            </form>
+        </section>
+        {% endif %}
     </div>
 </div>
 {% endfor %}

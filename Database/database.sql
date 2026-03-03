@@ -1,33 +1,24 @@
-create database UnifiedAppRec;
-use UnifiedAppRec;
-
 CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     username VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role ENUM('admin','user') DEFAULT 'user',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    password VARCHAR(100) NOT NULL,
+    role VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE wishlist (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    app_name VARCHAR(255) NOT NULL,
-    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-        ON DELETE CASCADE
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    app_name VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE user_reviews (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     app_name VARCHAR(255) NOT NULL,
-    rating INT CHECK (rating BETWEEN 1 AND 5),
-    review TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-        ON DELETE CASCADE
+    rating INTEGER,
+    review TEXT
 );
 
 INSERT INTO users (username, password, role)
-VALUES ('admin', 'admin123', 'admin');
+VALUES ('admin', 'admin@123', 'admin');
+select * from users;

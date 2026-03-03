@@ -3,22 +3,19 @@ import pandas as pd
 import numpy as np
 import re
 import pickle
-import mysql.connector
+import psycopg2
+import os
 import tensorflow as tf
 from sklearn.metrics import mean_squared_error
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-# ==========================================================
 # LOAD DATA
-# ==========================================================
 df_apps = pd.read_csv("apps.csv")
 df_ratings = pd.read_csv("ratings.csv")
 
-# ==========================================================
 # LOAD MODELS
-# ==========================================================
 with open("models/cosine_sim.pkl", "rb") as f:
     cosine_sim = pickle.load(f)
 
@@ -33,9 +30,7 @@ with open("models/user_encoder.pkl", "rb") as f:
 with open("models/app_encoder.pkl", "rb") as f:
     app_encoder = pickle.load(f)
 
-# ==========================================================
 # CONTEXT PROCESSOR
-# ==========================================================
 @app.context_processor
 def inject_user():
     return dict(
@@ -43,20 +38,14 @@ def inject_user():
         username=session.get("username")
     )
 
-# ==========================================================
 # DATABASE CONNECTION
-# ==========================================================
 def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Prannu@143",
-        database="UnifiedAppRec"
+    return psycopg2.connect(
+        os.environ.get("DATABASE_URL"),
+        sslmode="require"
     )
 
-# ==========================================================
 # HELPER FUNCTIONS
-# ==========================================================
 def clean_description(text):
     if pd.isna(text):
         return ""
@@ -92,9 +81,7 @@ def get_web_reviews(app_name):
     conn.close()
     return data
 
-# ==========================================================
 # CONTENT-BASED RECOMMENDATION
-# ==========================================================
 def get_content_recommendations(app_name=None, top_n=12):
 
     if app_name and app_name in indices:
@@ -107,9 +94,7 @@ def get_content_recommendations(app_name=None, top_n=12):
 
     return df_apps.sort_values("avg_rating", ascending=False).head(top_n)
 
-# ==========================================================
 # COLLABORATIVE FILTERING
-# ==========================================================
 def get_cf_recommendations(user_id, top_n=12):
 
     if user_id not in user_encoder:
@@ -138,9 +123,7 @@ def get_cf_recommendations(user_id, top_n=12):
 
     return df_apps[df_apps["app_id"].isin(recommended_ids)]
 
-# ==========================================================
 # HYBRID RECOMMENDATION
-# ==========================================================
 def get_hybrid_recommendations(user_id, top_n=12):
 
     cf_recs = get_cf_recommendations(user_id, top_n)
@@ -155,9 +138,7 @@ def get_hybrid_recommendations(user_id, top_n=12):
 
     return get_content_recommendations(top_n=top_n)
 
-# ==========================================================
 # ADMIN METRICS
-# ==========================================================
 def calculate_rmse():
 
     df = df_ratings.copy()
@@ -203,9 +184,7 @@ def get_user_activity():
     conn.close()
     return data
 
-# ==========================================================
 # ROUTES
-# ==========================================================
 @app.route("/")
 def landing():
     return render_template("login_choice.html")
@@ -216,7 +195,7 @@ def guest():
     session["role"] = "guest"
     return redirect(url_for("home"))
 
-# ================= USER LOGIN =================
+# USER LOGIN
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
@@ -246,7 +225,7 @@ def login():
 
     return render_template("login.html")
 
-# ================= ADMIN LOGIN =================
+# ADMIN LOGIN
 @app.route("/admin_login", methods=["GET", "POST"])
 def admin_login():
 
@@ -276,7 +255,7 @@ def admin_login():
 
     return render_template("admin_login.html")
 
-# ================= REGISTER =================
+# REGISTER
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
@@ -300,7 +279,7 @@ def register():
 
     return render_template("register.html")
 
-# ================= HOME =================
+# HOME
 @app.route("/home")
 def home():
 
@@ -309,15 +288,15 @@ def home():
     if not role:
         return redirect(url_for("landing"))
 
-    # 🔴 Admin should not see recommendations
     if role == "admin":
         return redirect(url_for("dashboard"))
 
-    # 🟢 User → Hybrid
     if role == "user":
         apps = get_hybrid_recommendations(session["user_id"])
 
-        # Fetch user's wishlist
+        # ✅ SORT HYBRID BY RATING (Highest first)
+        apps = apps.sort_values(by="avg_rating", ascending=False)
+
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(
@@ -329,10 +308,9 @@ def home():
 
         wishlist_set = {item[0] for item in wishlist_items}
 
-    # 🟢 Guest → Content based
     else:
         apps = get_content_recommendations()
-        wishlist_set = set()   # guest has no wishlist
+        wishlist_set = set()
 
     apps_list = []
 
@@ -345,15 +323,13 @@ def home():
         app_dict["positive_reviews"] = positive
         app_dict["negative_reviews"] = negative
         app_dict["web_reviews"] = web_reviews
-
-        # 🔥 KEY LINE (used in template)
         app_dict["in_wishlist"] = row["app_name"] in wishlist_set
 
         apps_list.append(app_dict)
 
     return render_template("index.html", apps=apps_list)
 
-# ================= RECOMMEND =================
+# RECOMMEND
 @app.route("/recommend", methods=["GET", "POST"])
 def recommend():
 
@@ -389,8 +365,7 @@ def recommend():
         recommendations=recommendations
     )
 
-# ================= DASHBOARD =================
-# ================= DASHBOARD =================
+# DASHBOARD
 @app.route("/dashboard")
 def dashboard():
 
@@ -414,7 +389,6 @@ def dashboard():
         num_users = cursor.fetchone()[0]
         conn.close()
 
-        # 🔥 ADD THIS LINE
         user_activity = get_user_activity()
 
         return render_template(
@@ -424,7 +398,7 @@ def dashboard():
             avg_rating=round(df_apps["avg_rating"].mean(), 2),
             category_counts=df_apps["category"].value_counts().to_dict(),
             rmse=rmse_value,
-            user_activity=user_activity,   # 🔥 PASS TO TEMPLATE
+            user_activity=user_activity,
             role=role
         )
 
@@ -435,11 +409,11 @@ def dashboard():
         avg_rating=round(df_apps["avg_rating"].mean(), 2),
         category_counts=df_apps["category"].value_counts().to_dict(),
         rmse=rmse_value,
-        user_activity=[],   # 🔥 SAFE DEFAULT
+        user_activity=[],  
         role=role
     )
 
-# ================= WISHLIST =================
+# WISHLIST
 @app.route("/wishlist")
 def wishlist():
 
@@ -477,7 +451,7 @@ def wishlist():
     return render_template("wishlist.html", apps=apps_list)
 
 
-# ================= ADD TO WISHLIST =================
+# ADD TO WISHLIST
 @app.route("/add_to_wishlist", methods=["POST"])
 def add_to_wishlist():
 
@@ -532,7 +506,7 @@ def remove_from_wishlist():
     flash("Removed from wishlist")
     return redirect(url_for("home"))
 
-# ================= ADD REVIEW =================
+# ADD REVIEW
 @app.route("/add_review", methods=["POST"])
 def add_review():
 
@@ -558,7 +532,7 @@ def add_review():
     flash("Review submitted successfully")
     return redirect(url_for("home"))
 
-# ================= REMOVE USER =================
+# REMOVE USER
 @app.route("/remove_user/<int:user_id>")
 def remove_user(user_id):
 
@@ -579,7 +553,7 @@ def remove_user(user_id):
     flash("User removed successfully")
     return redirect(url_for("dashboard"))
 
-# ================= LOGOUT =================
+# LOGOUT
 @app.route("/logout")
 def logout():
     session.clear()
